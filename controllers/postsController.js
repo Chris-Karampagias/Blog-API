@@ -44,10 +44,9 @@ exports.newPost = [
 ];
 exports.viewPosts = async (req, res, next) => {
   try {
-    const posts = await Posts.find(
-      {},
-      "title description image postedAt updatedAt"
-    ).exec();
+    const posts = await Posts.find({}, "title image postedAt updatedAt")
+      .sort({ postedAt: -1 })
+      .exec();
     if (!posts) {
       res.status(404).json({ error: "Looks like you haven't posted anything" });
     }
