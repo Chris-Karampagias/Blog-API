@@ -80,35 +80,46 @@ exports.updatePost = [
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty() || !req.file) {
-        return res
-          .status(400)
-          .json({ error: [...errors.array(), { msg: "Image is required" }] });
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array() });
       }
       const post = await Posts.findById(req.params.id);
-      const postsUsingOldImage = await Posts.find({
-        image: post.image,
-      })
-        .countDocuments()
-        .exec();
-      if (!postsUsingOldImage > 1) {
-        fs.unlink(`./${post.image}`, (error) => {
-          if (error) {
-            throw error;
-          }
+      if (req.file) {
+        const postsUsingOldImage = await Posts.find({
+          image: post.image,
+        })
+          .countDocuments()
+          .exec();
+        if (postsUsingOldImage === 1) {
+          fs.unlink(`./${post.image}`, (error) => {
+            if (error) {
+              throw error;
+            }
+          });
+        }
+        const updatedPost = new Posts({
+          _id: post._id,
+          title: req.body.title.replace("&#x27;", "'"),
+          description: req.body.description,
+          image: req.file.path,
+          postedAt: post.postedAt,
+          updatedAt: new Date(Date.now()),
+          comments: req.body.comments,
         });
+        await Posts.findByIdAndUpdate(post._id, updatedPost);
+      } else {
+        const updatedPost = new Posts({
+          _id: post._id,
+          title: req.body.title.replace("&#x27;", "'"),
+          description: req.body.description,
+          image: post.image,
+          postedAt: post.postedAt,
+          updatedAt: new Date(Date.now()),
+          comments: req.body.comments,
+        });
+        await Posts.findByIdAndUpdate(post._id, updatedPost);
       }
 
-      const updatedPost = new Posts({
-        _id: post._id,
-        title: req.body.title.replace("&#x27;", "'"),
-        description: req.body.description,
-        image: req.file.path,
-        postedAt: req.body.postedAt,
-        updatedAt: new Date(Date.now()),
-        comments: req.body.comments,
-      });
-      await Posts.findByIdAndUpdate(post._id, updatedPost);
       res.status(200).json({ error: null });
     } catch (error) {
       res.json({ error });
@@ -117,5 +128,27 @@ exports.updatePost = [
 ];
 
 exports.deletePost = async (req, res, next) => {
-  res.json({ message: "This is the delete post route" });
+  try {
+    const post = await Posts.findById(req.params.id).exec();
+    if (!post) {
+      res.status(404).json({ error: "Post not found" });
+    }
+    const postsUsingOldImage = await Posts.find({
+      image: post.image,
+    })
+      .countDocuments()
+      .exec();
+    console.log(postsUsingOldImage);
+    if (postsUsingOldImage === 1) {
+      fs.unlink(`./${post.image}`, (error) => {
+        if (error) {
+          throw error;
+        }
+      });
+    }
+    await Posts.findByIdAndDelete(req.params.id);
+    res.status(200).json({ error: null });
+  } catch (error) {
+    res.json({ error });
+  }
 };
