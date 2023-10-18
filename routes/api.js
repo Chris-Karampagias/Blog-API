@@ -5,6 +5,10 @@ const authentication = require("../middleware/authentication");
 
 router.post("/login", userAuth.login);
 
+router.put("/post/comments", postsController.addComment);
+
+router.get("/posts/latest", postsController.getLatestPosts);
+
 router.use(authentication);
 
 router.get("/posts", postsController.viewPosts);
