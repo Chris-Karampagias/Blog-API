@@ -138,7 +138,6 @@ exports.deletePost = async (req, res, next) => {
     })
       .countDocuments()
       .exec();
-    console.log(postsUsingOldImage);
     if (postsUsingOldImage === 1) {
       fs.unlink(`./${post.image}`, (error) => {
         if (error) {
@@ -152,3 +151,17 @@ exports.deletePost = async (req, res, next) => {
     res.json({ error });
   }
 };
+
+exports.getLatestPosts = async (req, res, next) => {
+  try {
+    const latestPosts = await Posts.find({}, "title description image")
+      .sort({ postedAt: -1 })
+      .limit(3)
+      .exec();
+    res.json(latestPosts);
+  } catch (err) {
+    res.json(err);
+  }
+};
+
+exports.addComment = async (req, res, next) => {};
