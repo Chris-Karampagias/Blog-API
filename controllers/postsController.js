@@ -1,4 +1,5 @@
 const Posts = require("../models/post");
+const Comments = require("../models/comment");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 const fs = require("fs");
@@ -46,9 +47,7 @@ exports.newPost = [
 ];
 exports.viewPosts = async (req, res, next) => {
   try {
-    const posts = await Posts.find({}, "title image postedAt updatedAt")
-      .sort({ postedAt: -1 })
-      .exec();
+    const posts = await Posts.find({}).sort({ postedAt: -1 }).exec();
     if (!posts) {
       res.status(404).json({ error: "Looks like you haven't posted anything" });
     }
@@ -60,7 +59,9 @@ exports.viewPosts = async (req, res, next) => {
 
 exports.viewPost = async (req, res, next) => {
   try {
-    const post = await Posts.findById(req.params.id).exec();
+    const post = await Posts.findById(req.params.id)
+      .populate("comments")
+      .exec();
     if (!post) {
       res.status(404).json({ error: "Post not found" });
     }
@@ -147,8 +148,8 @@ exports.deletePost = async (req, res, next) => {
     }
     await Posts.findByIdAndDelete(req.params.id);
     res.status(200).json({ error: null });
-  } catch (error) {
-    res.json({ error });
+  } catch (err) {
+    res.json({ error: err.message });
   }
 };
 
@@ -160,8 +161,83 @@ exports.getLatestPosts = async (req, res, next) => {
       .exec();
     res.json(latestPosts);
   } catch (err) {
-    res.json(err);
+    res.json({ error: err.message });
   }
 };
 
-exports.addComment = async (req, res, next) => {};
+exports.addComment = [
+  body("authorName", "Name is required").trim().isLength({ min: 1 }).escape(),
+  body("title", "Title is required").trim().isLength({ min: 1 }).escape(),
+  body("content", "Message is required").trim().isLength({ min: 1 }).escape(),
+  async (req, res, next) => {
+    console.log("Request body is: ", req.body);
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array() });
+      }
+      const post = await Posts.findById(req.params.id);
+      const comment = new Comments({
+        authorName: req.body.authorName,
+        title: req.body.title,
+        content: req.body.content,
+        post: post._id,
+      });
+      const updatedPost = new Posts({
+        _id: post._id,
+        title: post.title,
+        description: post.description,
+        image: post.image,
+        postedAt: post.postedAt,
+        updatedAt: post.updatedAt,
+        comments: [comment, ...post.comments],
+      });
+
+      await comment.save();
+      await Posts.findByIdAndUpdate(post._id, updatedPost);
+      res.status(200).json({ error: null });
+    } catch (err) {
+      res.json({ error: [{ message: err.message }] });
+    }
+  },
+];
+
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const post = await Posts.findById(req.params.postId)
+      .populate("comments")
+      .exec();
+    const comment = await Comments.findById(req.params.commentId);
+    console.log("Post is: ", post);
+    console.log("Comment is: ", comment);
+    if (!post || !comment) {
+      res.status(404).json({ error: "Could not find requested resource" });
+    }
+    const commentIndex = post.comments.findIndex(
+      (com) => com._id.toString() === comment.id.toString()
+    );
+
+    console.log("Comment index is: ", commentIndex);
+
+    post.comments.splice(commentIndex, 1);
+
+    const updatedPost = new Posts({
+      _id: post._id,
+      title: post.title,
+      description: post.description,
+      image: post.image,
+      postedAt: post.postedAt,
+      updatedAt: post.updatedAt,
+      comments: [...post.comments],
+    });
+
+    await Comments.findByIdAndDelete(comment._id);
+    await Posts.findByIdAndUpdate(post._id, updatedPost);
+
+    const com = await Comments.findById(comment._id);
+    console.log("After deletion: ", com);
+    res.status(200).json({ error: null });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+};
