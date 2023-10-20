@@ -130,7 +130,9 @@ exports.updatePost = [
 
 exports.deletePost = async (req, res, next) => {
   try {
-    const post = await Posts.findById(req.params.id).exec();
+    const post = await Posts.findById(req.params.id)
+      .populate("comments")
+      .exec();
     if (!post) {
       res.status(404).json({ error: "Post not found" });
     }
@@ -146,6 +148,10 @@ exports.deletePost = async (req, res, next) => {
         }
       });
     }
+    post.comments.forEach(async (comment) => {
+      await Comments.findByIdAndDelete(comment._id);
+    });
+
     await Posts.findByIdAndDelete(req.params.id);
     res.status(200).json({ error: null });
   } catch (err) {
