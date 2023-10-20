@@ -9,15 +9,28 @@ const corsOptionsCMS = {
   optionsSuccessStatus: 200,
 };
 
+const corsOptionsBlog = {
+  origin: "https://blog-gamma-cyan-31.vercel.app/",
+  optionsSuccessStatus: 200,
+};
+
 //Routes for the blog
 
-router.get("/posts/latest", postsController.getLatestPosts);
+router.get(
+  "/posts/latest",
+  cors(corsOptionsBlog),
+  postsController.getLatestPosts
+);
 
-router.get("/posts", postsController.viewPosts);
+router.get("/posts", cors(corsOptionsBlog), postsController.viewPosts);
 
-router.put("/posts/:id/comments", postsController.addComment);
+router.put(
+  "/posts/:id/comments",
+  cors(corsOptionsBlog),
+  postsController.addComment
+);
 
-router.get("/posts/:id", postsController.viewPost);
+router.get("/posts/:id", cors(corsOptionsBlog), postsController.viewPost);
 
 //Routes for the blog cms
 
