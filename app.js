@@ -7,6 +7,9 @@ const cors = require("cors");
 
 const app = express();
 
+app.options("/auth/posts/:id", cors());
+app.options("/auth/posts/:postId/comments/:commentId", cors());
+
 app.use(cors());
 
 //production config
