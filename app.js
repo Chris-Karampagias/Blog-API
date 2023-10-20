@@ -28,7 +28,7 @@ const apiRouter = require("./routes/api");
 //Mongo connection setup
 const mongoose = require("mongoose");
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(process.env.MONGO_URL_DEV, {
     useUnifiedTopology: true,
     useNewUrlParser: true,
   })
