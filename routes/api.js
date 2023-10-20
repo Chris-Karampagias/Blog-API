@@ -10,7 +10,7 @@ const corsOptionsCMS = {
 };
 
 const corsOptionsBlog = {
-  origin: "https://blog-gamma-cyan-31.vercel.app/",
+  origin: "https://blog-gamma-cyan-31.vercel.app",
   optionsSuccessStatus: 200,
 };
 
