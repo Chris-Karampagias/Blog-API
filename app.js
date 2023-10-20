@@ -28,10 +28,11 @@ const apiRouter = require("./routes/api");
 //Mongo connection setup
 const mongoose = require("mongoose");
 mongoose
-  .connect(process.env.MONGO_URL_DEV, {
+  .connect(process.env.MONGO_URL_PROD, {
     useUnifiedTopology: true,
     useNewUrlParser: true,
   })
+  .then(() => console.log("connected"))
   .catch((err) => console.log("Could not connect to the database", err));
 
 app.use(logger("dev"));
