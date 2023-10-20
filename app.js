@@ -17,7 +17,11 @@ const compression = require("compression");
 app.use(compression());
 
 const helmet = require("helmet");
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 const RateLimit = require("express-rate-limit");
 const limiter = RateLimit({
