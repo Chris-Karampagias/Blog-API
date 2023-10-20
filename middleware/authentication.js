@@ -10,7 +10,7 @@ const authentication = (req, res, next) => {
   const token = authorization.split(" ")[1];
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET_KEY);
+    jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ error: error.message });
   }
