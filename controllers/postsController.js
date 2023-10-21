@@ -184,9 +184,9 @@ exports.addComment = [
       }
       const post = await Posts.findById(req.params.id);
       const comment = new Comments({
-        authorName: req.body.authorName,
-        title: req.body.title,
-        content: req.body.content,
+        authorName: req.body.authorName.replace("&#x27;", "'"),
+        title: req.body.title.replace("&#x27;", "'"),
+        content: req.body.content.replace("&#x27;", "'"),
         post: post._id,
       });
       const updatedPost = new Posts({
