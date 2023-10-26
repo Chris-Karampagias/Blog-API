@@ -17,11 +17,8 @@ const upload = multer({ storage: storageStrategy });
 
 exports.newPost = [
   upload.single("image"),
-  body("title", "Title is required").trim().isLength({ min: 1 }).escape(),
-  body("description", "Description is required")
-    .trim()
-    .isLength({ min: 1 })
-    .escape(),
+  body("title", "Title is required").trim().isLength({ min: 1 }),
+  body("description", "Description is required").trim().isLength({ min: 1 }),
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
