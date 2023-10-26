@@ -17,11 +17,8 @@ const upload = multer({ storage: storageStrategy });
 
 exports.newPost = [
   upload.single("image"),
-  body("title", "Title is required").trim().isLength({ min: 1 }).escape(),
-  body("description", "Description is required")
-    .trim()
-    .isLength({ min: 1 })
-    .escape(),
+  body("title", "Title is required").trim().isLength({ min: 1 }),
+  body("description", "Description is required").trim().isLength({ min: 1 }),
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -31,7 +28,7 @@ exports.newPost = [
           .json({ error: [...errors.array(), { msg: "Image is required" }] });
       }
       const post = new Posts({
-        title: req.body.title.replace("&#x27;", "'"),
+        title: req.body.title,
         image: req.file.path,
         description: req.body.description,
         postedAt: new Date(Date.now()),
@@ -73,11 +70,8 @@ exports.viewPost = async (req, res, next) => {
 
 exports.updatePost = [
   upload.single("image"),
-  body("title", "Title is required").trim().isLength({ min: 1 }).escape(),
-  body("description", "Description is required")
-    .trim()
-    .isLength({ min: 1 })
-    .escape(),
+  body("title", "Title is required").trim().isLength({ min: 1 }),
+  body("description", "Description is required").trim().isLength({ min: 1 }),
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -100,7 +94,7 @@ exports.updatePost = [
         }
         const updatedPost = new Posts({
           _id: post._id,
-          title: req.body.title.replace("&#x27;", "'"),
+          title: req.body.title,
           description: req.body.description,
           image: req.file.path,
           postedAt: post.postedAt,
@@ -111,7 +105,7 @@ exports.updatePost = [
       } else {
         const updatedPost = new Posts({
           _id: post._id,
-          title: req.body.title.replace("&#x27;", "'"),
+          title: req.body.title,
           description: req.body.description,
           image: post.image,
           postedAt: post.postedAt,
